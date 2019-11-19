@@ -1,3 +1,6 @@
+
+curl http://localhost:8080/send/testmsg
+
 # Spring-Boot Camel XML QuickStart
 
 This example demonstrates how to configure Camel routes in Spring Boot via
