@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.Queue;
 import javax.jms.TextMessage;
 import javax.websocket.server.PathParam;
 
@@ -36,15 +37,38 @@ public class Controller {
     @Value("${listen.queue}")
     private String listenQueue;
 
+    //@Value("${loop}")
+    //private int loop;
+
     @Autowired
     private JmsTemplate jmsTemplate;
     Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
     @GetMapping("/send/{message}")
-    public String test(@PathVariable("message") String msg) {
+    public String send(@PathVariable("message") String msg) {
         log.debug(msg);
+
+        //sendMessage(msg,Integer.parseInt(loop));
         sendMessage(msg);
         return msg;
+    }
+
+    @GetMapping("/send/{message}/{loop}")
+    public String send(@PathVariable("message") String msg, @PathVariable("loop") int loop) {
+        log.debug(msg);
+
+        //sendMessage(msg,Integer.parseInt(loop));
+        sendMessage(msg,loop);
+        return msg;
+    }   
+    public void sendMessage(String text, int loop) {
+         String correlationId = null;
+        System.out.println(String.format("Loop Sending '%s' '%s'", text,loop));
+        System.out.println(String.format("Sending '%s'", text));
+        for (int i=0; i < loop; i++) {
+            correlationId = UUID.randomUUID().toString();
+            this.jmsTemplate.convertAndSend(putQueue, text+"_"+loop, new CorrelationIdPostProcessor(correlationId));
+        }
     }
 
     public void sendMessage(String text) {
@@ -58,13 +82,31 @@ public class Controller {
     @JmsListener(destination = "${listen.queue}")
     public void listen(Message msg) {
         try {
+            System.out.println("listen queue");
             System.out.println(((TextMessage) msg).getText());
-            System.out.println(((TextMessage) msg).getJMSCorrelationID());
+            System.out.println(((TextMessage) msg). getJMSCorrelationID());
+            System.out.println(((TextMessage) msg).getJMSReplyTo());
+
         } catch (JMSException e) {
             e.printStackTrace();
         }
     }
 
+    //@JmsListener(destination = "${put.queue}")
+    public void listenReply(Message msg) {
+        try {
+            System.out.println("put queue");
+            String text= ((TextMessage) msg).getText();
+            System.out.println(text);
+            System.out.println(((TextMessage) msg). getJMSCorrelationID());
+            System.out.println(((TextMessage) msg).getJMSReplyTo());
+            System.out.println(String.format("replying '%s'",text));
+            //this.jmsTemplate.convertAndSend(putQueue, text+"_reply", new CorrelationIdPostProcessor(((TextMessage) msg).getJMSCorrelationID()));
+    
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }    
 	private class CorrelationIdPostProcessor implements MessagePostProcessor {
 		private final String correlationId;
 
@@ -76,7 +118,13 @@ public class Controller {
 		public Message postProcessMessage(final Message msg)
 				throws JMSException {
             msg.setJMSCorrelationID(correlationId);
+            msg.setJMSReplyTo(new Queue(){
             
+                @Override
+                public String getQueueName() throws JMSException {
+                    return putQueue;
+                }
+            });
 			return msg;
 		}
 	}    

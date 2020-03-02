@@ -1,4 +1,4 @@
-/home/virtuser/apps/amq/src/main/java/com/redhat/demo/config/Config.java
-/home/virtuser/apps/amq/src/main/java/com/redhat/demo/MyTransformer.java
-/home/virtuser/apps/amq/src/main/java/com/redhat/demo/Application.java
-/home/virtuser/apps/amq/src/main/java/com/redhat/demo/Controller.java
+/home/virtuser/apps/springboot/springboot-amqclient/src/main/java/com/redhat/demo/MyTransformer.java
+/home/virtuser/apps/springboot/springboot-amqclient/src/main/java/com/redhat/demo/Application.java
+/home/virtuser/apps/springboot/springboot-amqclient/src/main/java/com/redhat/demo/config/Config.java
+/home/virtuser/apps/springboot/springboot-amqclient/src/main/java/com/redhat/demo/Controller.java
